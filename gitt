@@ -1,0 +1,72 @@
+#!/bin/sh
+BASEDIR=$(dirname "$0")
+CURRENTDIR=$PWD;
+
+source "$BASEDIR/scripts/common.sh"
+
+options=("add . / commit -m "
+        "push"
+        "pull"
+        "stash save "
+        "stash pop"
+        "stash apply"
+        "create new branch"
+        "stash/pull/pop")
+
+show_menu(){
+    echo "${MENU}**********************************************************************${NORMAL}"
+
+    for i in "${!options[@]}"; do
+      index=$(($i + 1))
+      echo "${MENU}🔸${YELLOW} $index ${MENU}) ${options[i]} ${NORMAL}"
+    done
+
+    echo "${MENU}🔸${YELLOW} x ${MENU}) EXIT ${NORMAL}"
+
+    echo "${MENU}**********************************************************************${NORMAL}"
+    echo "${ENTER_LINE}Please enter a menu option then hit enter.${NORMAL}"
+    read opt
+}
+
+option_picked(){
+    clear;
+    index=$((${@} - 1))
+    echo "Selected option: ${YELLOW}$@ ${BOLD_RED}${options[${index}]}${WHITE}"
+}
+
+bye(){
+  cd $CURRENTDIR
+  echo "${BOLD_RED}Goodbye! 👋 Happy Programming! 👨🏻‍💻 🧿${NORMAL}"; exit
+}
+
+readFromConsole(){
+  read -p "$@ :"  readValue
+  echo $readValue
+}
+
+
+
+clear
+echo "${RED_TEXT}Git command line tools${NORMAL}"
+while [ opt != '' ]
+do
+    cd $BASEDIR
+    show_menu;
+    case $opt in
+      1) option_picked $opt;
+         local message=$(readFromConsole "Enter commit message")
+         git add .
+         git commit -m "$message"
+      ;;
+      2) option_picked $opt; git push;;
+      3) option_picked $opt; git pull;;
+      4) option_picked $opt; ./scripts/git/git-stash-save.sh;;
+      5) option_picked $opt; git stash pop;;
+      6) option_picked $opt; git stash apply;;
+      6) option_picked $opt; ./scripts/git/git-stash-save.sh;;
+      x) bye;;
+      X) bye;;
+      *) echo "${BOLD_RED}Invalid option. Try another one ${NORMAL}";;
+    esac
+    echo "${GREEN}Job done 😎 ${NORMAL}"
+done

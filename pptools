@@ -1,0 +1,96 @@
+#!/bin/sh
+BASEDIR=$(dirname "$0")
+CURRENTDIR=$PWD;
+
+source "$BASEDIR/scripts/common.sh"
+
+options=("Restart docker images"
+        "Clean build all"
+        "Clean build all without tests"
+        "Deploy configuration"
+        "Reset db and populate data"
+        "Deploy to Tomcat cRR"
+        "Run acceptence tests"
+        "Run locally"
+        "Git pull all"
+        "Initiate workspace"
+        "ComposeDown & ComposeUp")
+
+show_menu(){
+    echo "${MENU}************************************${Color_Off}"
+
+    for i in "${!options[@]}"; do
+      item_color=${On_Black}
+      if [ $(($i % 2)) -eq 0 ]; then
+        item_color=${On_IBlack}
+      fi
+
+      index=$(($i + 1))
+      echo "${item_color} $index ) ${options[i]} ${Color_Off}"
+    done
+
+    echo "${Yellow} x ) EXIT ${Color_Off}"
+
+    echo "${MENU}************************************${Color_Off}"
+    echo "${ENTER_LINE}Please enter a menu option then hit enter.${Color_Off}"
+    read opt
+}
+
+option_picked(){
+    clear;
+    index=$((${@} - 1))
+    echo "Selected option: ${Yellow}$@ ${BOLD_RED}${options[${index}]}${WHITE}"
+}
+
+job_result(){
+  index=$((${@} - 1))
+  option_name=${options[${index}]}
+  if [ $? -eq 0 ]; then
+      echo "${GREEN}[ $option_name ] Job done 👏${Color_Off}"
+  else
+      echo "${BOLD_RED}[ $option_name ] Job Failed 😱 ${Color_Off}"
+  fi
+}
+
+bye(){
+  cd $CURRENTDIR
+  echo "${BOLD_RED}Goodbye! 👋${Color_Off}"
+  exit
+}
+
+clear
+cd $BASEDIR
+echo "${RED_TEXT}Backend command line tools - Welcome${Color_Off}"
+while [ opt != '' ]
+do
+    show_menu;
+    case $opt in
+      1) option_picked $opt;
+        ./scripts/docker-stop.sh
+        ./scripts/docker-start.sh;;
+      2) option_picked $opt; ./scripts/clean-build-all.sh;;
+      3) option_picked $opt; ./scripts/clean-build-all-no-test.sh;;
+      4) option_picked $opt; ./scripts/deployConfig.sh;;
+      5) option_picked $opt; ./scripts/resetDb.sh;;
+      6) option_picked $opt; ./scripts/cRR-all.sh;;
+      7) option_picked $opt; ./scripts/acceptence-tests.sh;;
+      8) option_picked $opt;
+         ./scripts/docker-stop.sh
+         ./scripts/docker-start.sh
+         ./scripts/deployConfig.sh
+         ./scripts/clean-build-all.sh
+         ./scripts/resetDb.sh
+         ./scripts/cRR-all.sh;;
+      9) option_picked $opt; ./scripts/git-pull-all.sh;;
+      10)option_picked $opt; ./scripts/initiate-workspace.sh;;
+      11)option_picked $opt;
+        ./scripts/docker-compose-down.sh
+        ./scripts/docker-compose-up.sh;;
+      x) bye;;
+      X) bye;;
+      *) echo "${BOLD_RED}Invalid option. Try another one 👀${Color_Off}";;
+    esac
+
+    job_result $opt
+
+done
